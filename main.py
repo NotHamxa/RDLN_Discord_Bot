@@ -660,7 +660,7 @@ async def removeUser(ctx, arg):
         print(e)
 
 @client.command(name="addPoints")
-async def addPoints(ctx,arg):
+async def addPoints(ctx,arg=None):
     try:
         if ctx.channel.id not in [1157041206572892169, 1167100338914988112]:
             return
