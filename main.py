@@ -8,6 +8,7 @@ SECRET_KEY = "MTE2NjgxNTMzNzM4NDI2MzgzMA.G20Jyo.lAOSXqeJNgwQRXFC49JEPqgEp5T0F1CW
 BOT_ANNOUNCEMENTS_CHANNEL_ID = 1178684719144128533
 PRIVATE_CHANNELS_CATEGORY_ID = 1190401067813453984
 GENERAL_CHANNEL_ID = 1157024450504560651
+SERVER_ID = 819441557664169994
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
@@ -658,5 +659,23 @@ async def removeUser(ctx, arg):
     except Exception as e:
         print(e)
 
-
+@client.command(name="addPoints")
+async def addPoints(ctx,arg):
+    try:
+        if ctx.channel.id not in [1157041206572892169, 1167100338914988112]:
+            return
+        else:
+            if ctx.author.id != 829376179706134558:
+                await ctx.send("L + U thought + U Cant + Dont have the perms + Skill Issue + Me Na Sehta")
+            else:
+                arg = str(arg).split(",")
+                server = client.get_guild(SERVER_ID)
+                user = get(server.members,name=arg[0])
+                if user is not None:
+                    userData = database.getUserData(user.id,user.name)
+                    database.discordData.find_one_and_update({"discord_id":user.id},
+                                                             {"$set":{"wallet":userData["wallet"]+int(arg[1])}})
+                await ctx.send("Points added")
+    except Exception as e:
+        print(e)
 client.run(token=SECRET_KEY)
