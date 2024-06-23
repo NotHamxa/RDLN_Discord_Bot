@@ -3,16 +3,44 @@ from discord.ext import commands, tasks
 from discord.utils import get
 import time
 from db import database
-
-SECRET_KEY = "MTE2NjgxNTMzNzM4NDI2MzgzMA.G20Jyo.lAOSXqeJNgwQRXFC49JEPqgEp5T0F1CWG9-JdA"
+import os
+SECRET_KEY = os.getenv('SECRET_KEY')
 BOT_ANNOUNCEMENTS_CHANNEL_ID = 1178684719144128533
 PRIVATE_CHANNELS_CATEGORY_ID = 1190401067813453984
 GENERAL_CHANNEL_ID = 1157024450504560651
 SERVER_ID = 819441557664169994
+MY_ID = 829376179706134558
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 client = commands.Bot(command_prefix="rdln.", intents=intents, help_command=None)
+
+
+@client.event
+async def on_ready():
+    try:
+        x = await client.tree.sync()
+        print(f'{x} commands synced')
+    except Exception as e:
+        print(e)
+
+
+
+@client.command(name="selfDestruct")
+async def selfDestruct(ctx):
+    try:
+        if ctx.channel.id not in [1157041206572892169, 1167100338914988112]:
+            return
+        else:
+            if ctx.author.id != 829376179706134558:
+                await ctx.send("L + U thought + U Cant + Dont have the perms + Skill Issue + Me Na Sehta")
+            else:
+                await ctx.send("Wiping BOT Data")
+                await ctx.send("BOT Closed")
+                exit()
+    except Exception as e:
+        print(e)
+
 
 accs = {}
 muted = []
@@ -267,7 +295,7 @@ class ShopPaginationView(discord.ui.View):
             await self.buy()
 
 
-@client.command(name="shop")
+@client.tree.command(name="shop")
 async def shop(ctx):
     try:
         if ctx.channel.id not in [1157041206572892169, 1167100338914988112]:
@@ -311,7 +339,7 @@ async def learderBoard(ctx):
                 third = f'03 - 🥉 {client.get_user(data[2]["discord_id"]).name} with {database.cnvrtTime(data[2]["discord_time"])}'
                 top3 = first + "\n" + second + "\n" + third + "\n"
             except:
-                title = "Not enought people to make a leaderboard"
+                title = "Not enough people to make a leaderboard"
 
             try:
                 for i in range(3, len(data)):
@@ -368,7 +396,6 @@ You have spent {hrs}hrs {mins}mins on the Redline Server''')
 async def on_voice_state_update(member, before, after):
     try:
 
-
         if ((before.channel is None and after.channel is not None) or (
                 before.channel is not None and after.channel is not None)):
             if member.id not in accs:
@@ -378,7 +405,6 @@ async def on_voice_state_update(member, before, after):
         if after.channel is not None:
             if after.self_mute == True and member.id not in muted:
                 if accs[member.id]["temp_time"] != 0:
-
                     accs[member.id]["time"] += int((time.time_ns() - accs[member.id]["temp_time"]) / 1000000000)
                     database.setTime(member.id, accs[member.id]["time"])
 
@@ -473,7 +499,6 @@ async def useCode(ctx, arg=None):
 async def setStatus(ctx, arg=None):
     try:
 
-
         global shopStatus
 
         if ctx.channel.id not in [1157041206572892169, 1167100338914988112] or arg == None:
@@ -500,7 +525,7 @@ async def createVc(ctx):
         userId = ctx.author.id
         if database.privateVcs.find_one({"owner_id": userId}) is None:
             userInfo = database.getUserData(userId)
-            if userInfo["wallet"] > 100:
+            if userInfo["wallet"] >= 100:
                 database.discordData.find_one_and_update({"discord_id": userId},
                                                          {"$set": {"wallet": (userInfo["wallet"] - 100)}})
                 server = client.get_guild(819441557664169994)
@@ -615,9 +640,12 @@ async def vcUserList(ctx):
 
                 members = ""
                 for user in vcData["people"]:
-                    member = client.get_user(user)
-                    members += member.name
-                    members += '\n'
+                    try:
+                        member = client.get_user(user)
+                        members += member.name
+                        members += '\n'
+                    except Exception as e:
+                        pass
                 embed = discord.Embed(title=f"{ctx.author.name}'s private VC",
                                       colour=discord.Colour.dark_teal(),
                                       description=members)
@@ -659,23 +687,51 @@ async def removeUser(ctx, arg):
     except Exception as e:
         print(e)
 
+
 @client.command(name="addPoints")
-async def addPoints(ctx,arg=None):
+async def addPoints(ctx, arg=None):
     try:
         if ctx.channel.id not in [1157041206572892169, 1167100338914988112]:
             return
         else:
-            if ctx.author.id != 829376179706134558:
+            if ctx.author.id != MY_ID:
                 await ctx.send("L + U thought + U Cant + Dont have the perms + Skill Issue + Me Na Sehta")
             else:
                 arg = str(arg).split(",")
                 server = client.get_guild(SERVER_ID)
-                user = get(server.members,name=arg[0])
+                user = get(server.members, name=arg[0])
                 if user is not None:
-                    userData = database.getUserData(user.id,user.name)
-                    database.discordData.find_one_and_update({"discord_id":user.id},
-                                                             {"$set":{"wallet":userData["wallet"]+int(arg[1])}})
+                    userData = database.getUserData(user.id, user.name)
+                    database.discordData.find_one_and_update({"discord_id": user.id},
+                                                             {"$set": {"wallet": userData["wallet"] + int(arg[1])}})
                 await ctx.send("Points added")
     except Exception as e:
         print(e)
+
+
+@client.command(name="fiverrProgress")
+async def getFiverrProgress(ctx):
+    try:
+        if ctx.channel.id not in [1167100338914988112]:
+            return
+        else:
+            if ctx.author.id != MY_ID:
+                return
+            else:
+                fiverrData = database.fiverrDb.find_one({"isDone": False})
+                data = ""
+                data += f'sessionCode:{fiverrData["sessionCode"]}' + '\n'
+                data += f'progress:{"Not Complete"}' + '\n'
+
+                for i in fiverrData["urls"].keys():
+                    data += f"    Id:{i}" + '\n'
+                    data += f"    Url:{fiverrData['urls'][i]['url']}" + '\n'
+                    data += f"    Progress:{fiverrData['urls'][i]['stage']}" + '\n'
+                    data += f"    Pages Downloaded:{fiverrData['urls'][i]['stage']}" + '\n'
+                    data += "\n"
+                await ctx.channel.send(data)
+    except Exception as e:
+        print(e)
+
+
 client.run(token=SECRET_KEY)
