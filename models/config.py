@@ -1,3 +1,5 @@
+from typing import Any
+from discord.ext import commands
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import BaseModel
 
@@ -20,5 +22,12 @@ class Configuration(BaseModel):
     mainAdminIds: list = [myId, hammadBaddieId]
 
 
+class CurrentConfiguration(BaseModel):
+    client: commands.Bot = None
+    shopStatus:bool = True
+    accs:dict = {}
+    muted:list = []
+
+currentConfiguration = CurrentConfiguration()
 configuration = Configuration()
 settings = Settings()

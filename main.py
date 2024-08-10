@@ -3,13 +3,15 @@ from discord.ext import commands
 from discord.utils import get
 import time
 from database.db import database, uwuImg
-from controller import controller
-from models.config import settings, configuration
+from controller import commandsController, timeController
+from models.config import settings, configuration, currentConfiguration
 
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 client = commands.Bot(command_prefix="rdln.", intents=intents, help_command=None)
+
+currentConfiguration.client = client
 
 
 @client.event
@@ -38,22 +40,10 @@ async def selfDestruct(ctx):
     except Exception as e:
         print(e)
 
-
-accs = {}
-muted = []
-shopStatus = True
-
 @client.command(name="shop")
 async def shop(ctx):
     try:
-        if ctx.channel.id not in mainBotChannels:
-            await ctx.channel.send("Commands can only be sent in the bot commands channel")
-            return
-        if not shopStatus:
-            await ctx.channel.send("Shop is currently disabled")
-            return
-        paginationView = ShopPaginationView()
-        await paginationView.send(ctx)
+        await controller.shop(ctx)
     except Exception as e:
         print(e)
 
@@ -61,11 +51,7 @@ async def shop(ctx):
 @client.command(name="help")
 async def help(ctx):
     try:
-        if ctx.channel.id not in mainBotChannels:
-            await ctx.channel.send("Commands can only be sent in the bot commands channel")
-            return
-        paginationView = HelpPaginationView()
-        await paginationView.send(ctx)
+        await controller.help(ctx)
     except Exception as e:
         print(e)
 
@@ -73,40 +59,7 @@ async def help(ctx):
 @client.command(name="vcLeaderboard")
 async def learderBoard(ctx):
     try:
-        if ctx.channel.id not in mainBotChannels:
-            await ctx.channel.send("Commands can only be sent in the bot commands channel")
-        else:
-            data = database.TopTen()
-            description = ""
-            try:
-                title = "TOP 10"
-                first = f'01 - 🥇 {client.get_user(data[0]["discord_id"]).name} with {database.cnvrtTime(data[0]["discord_time"])}'
-                second = f'02 - 🥈 {client.get_user(data[1]["discord_id"]).name} with {database.cnvrtTime(data[1]["discord_time"])}'
-                third = f'03 - 🥉 {client.get_user(data[2]["discord_id"]).name} with {database.cnvrtTime(data[2]["discord_time"])}'
-                top3 = first + "\n" + second + "\n" + third + "\n"
-            except:
-                title = "Not enough people to make a leaderboard"
-
-            try:
-                for i in range(3, len(data)):
-                    name = client.get_user(data[i]["discord_id"]).name
-                    if i != 9:
-                        x = "0" + str(i + 1)
-                    else:
-                        x = "10"
-                    description += f'{x} - 🏅 {name} with {database.cnvrtTime(data[i]["discord_time"])}'
-                    description += "\n"
-            except:
-                description = ""
-            embed = discord.Embed(
-                colour=discord.Colour.dark_teal(),
-                title=title,
-                description=top3 + description
-            )
-            embed.set_thumbnail(url=client.get_user(data[0]["discord_id"]).display_avatar)
-            embed.set_author(name="VC Leaderboard")
-
-            await ctx.channel.send(embed=embed)
+        await controller.vcLeaderboard(ctx)
     except Exception as e:
         print(e)
 
@@ -114,25 +67,7 @@ async def learderBoard(ctx):
 @client.command(name="stats")
 async def my_stats(ctx):
     try:
-
-        if ctx.channel.id not in mainBotChannels:
-            await ctx.channel.send("Commands can only be sent in the bot commands channel")
-        else:
-            id = ctx.message.author.id
-            name = ctx.message.author.name
-            data = database.getUserData(id, name)
-
-            if data != None:
-                hrs = int((data["discord_time"] // 3600))
-                mins = int((data["discord_time"] - (hrs * 3600)) // 60)
-                embed = discord.Embed(
-                    colour=discord.Colour.dark_teal(),
-                    description=f'''
-You have spent {hrs}hrs {mins}mins on the Redline Server''')
-                embed.set_author(name=f"{name}")
-                embed.add_field(name="Help", value="For more information use the command rdln.help")
-                embed.set_thumbnail(url=ctx.message.author.display_avatar)
-                await ctx.channel.send(embed=embed)
+        await controller.stats(ctx)
 
     except Exception as e:
         print(e)
@@ -141,40 +76,7 @@ You have spent {hrs}hrs {mins}mins on the Redline Server''')
 @client.event
 async def on_voice_state_update(member, before, after):
     try:
-
-        if ((before.channel is None and after.channel is not None) or (
-                before.channel is not None and after.channel is not None)):
-            if member.id not in accs:
-                data = database.getUserData(member.id, member.name)
-                accs.update({member.id: {"name": member, "time": data["discord_time"], "temp_time": time.time_ns()}})
-
-        if after.channel is not None:
-            if after.self_mute == True and member.id not in muted:
-                if accs[member.id]["temp_time"] != 0:
-                    accs[member.id]["time"] += int((time.time_ns() - accs[member.id]["temp_time"]) / 1000000000)
-                    database.setTime(member.id, accs[member.id]["time"])
-
-                    database.setCode(member.id)
-
-                    muted.append(member.id)
-
-            elif after.self_mute == False and member.id in muted:
-
-                muted.remove(member.id)
-                accs[member.id]["temp_time"] = time.time_ns()
-        elif before.channel is not None and after.channel is None:
-            if accs.get(member.id) != None:
-                if member.id not in muted:
-                    if accs[member.id]["temp_time"] != 0:
-                        accs[member.id]["time"] += int((time.time_ns() - accs[member.id]["temp_time"]) / 1000000000)
-                        database.setTime(member.id, accs[member.id]["time"])
-
-                        database.setCode(member.id)
-
-                        del accs[member.id]
-                        if member.id in muted:
-                            muted.remove(member.id)
-
+        await timeController.voiceChannelEvent(member, before, after)
     except Exception as e:
         print(e)
 
@@ -182,13 +84,7 @@ async def on_voice_state_update(member, before, after):
 @client.command(name="wallet")
 async def wallet(ctx):
     try:
-
-        if ctx.channel.id not in mainBotChannels:
-            await ctx.channel.send("Commands can only be sent in the bot commands channel")
-        else:
-            data = database.getUserData(ctx.author.id, ctx.author.name)
-            await ctx.send(f'You have {data["wallet"]} point(s) in your wallet')
-
+        await commandsController.wallet(ctx)
     except Exception as e:
         print(e)
 
@@ -258,7 +154,6 @@ async def setStatus(ctx, arg=None):
 
     except Exception as e:
         print(e)
-
 
 
 @client.command(name="addUser")

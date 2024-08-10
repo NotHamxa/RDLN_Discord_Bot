@@ -3,6 +3,8 @@ from pymongo.server_api import ServerApi
 import string
 import random
 
+from models.models import User
+
 
 class Database():
     def __init__(self, url, database):
@@ -16,18 +18,24 @@ class Database():
         self.fiverrDb = self.client.get_database("fiverr").get_collection("collection")
         self.timeThreshold = 1
         self.codeLenght = 6
-    def getUserData(self, Id, username=None):
+
+    def getUserData(self, Id, username=None) -> User:
+        """
+        returns the data of the user.
+        Returns a base format with all attributes as 0 if user not found
+        :param Id:
+        :param username:
+        :return: The User class with the users data
+        """
         data = self.discordData.find_one({"discord_id": Id})
 
-        if data == None:
-            self.discordData.insert_one({"discord_id": Id,
-                                         "discord_username": username,
-                                         "discord_time": 0,
-                                         "received_num": 0,
-                                         "wallet": 0})
+        if data is None:
+            baseUser = User(**{"discord_id": Id, "username": username})
+            self.discordData.insert_one(baseUser.model_dump())
 
-            return self.discordData.find_one({"discord_id": Id})
-        return data
+            return baseUser
+        user = User(**data)
+        return user
 
     def setTime(self, Id, time):
         self.discordData.update_one(
@@ -102,7 +110,6 @@ class Database():
 
 
 database = Database("mongodb://localhost:27017/", "RDLN")
-
 
 uwuImg = """
 ⠀⠀⠀⠀⠀⠀⠀⠀⠻⣽⠀⣿⣿⡟⣼⡀⠜⣯⣟⣳⣟⠀⠀⣿⡀⣼⡳⠀⣇⢸⡿⡽⢃⢃⣿⡿⡘⢐⣻⢿⠀⣿⣳⡏⢸⣷⠃⢀⣾⢡⠇⡸⣸⡏⢠⣿⣿⣿⣷⢸⢢⣿⡸⢠⢘⠻⣽⢸⣿⡏

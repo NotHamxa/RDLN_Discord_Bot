@@ -1,5 +1,7 @@
 import discord
 from database.db import database
+from pages.helperFunctions.helperFunctions import createVc, upgradeVc
+from pageModel.shopPageModel import shopPages
 
 class ShopPaginationView(discord.ui.View):
     currentPage = 1
@@ -18,10 +20,10 @@ class ShopPaginationView(discord.ui.View):
         self.firstButton.disabled = True
         self.previousButton.disabled = True
         self.BuyButton.disabled = True
-        self.message = await ctx.send(embed=ShopPages[self.currentPage.__str__()], view=self)
+        self.message = await ctx.send(embed=shopPages[self.currentPage.__str__()], view=self)
 
     async def updateMessage(self, page):
-        await self.message.edit(embed=ShopPages[page], view=self)
+        await self.message.edit(embed=shopPages[page], view=self)
 
     def disableButtons(self):
         if self.currentPage == 1:

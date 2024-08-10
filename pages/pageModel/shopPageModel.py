@@ -46,4 +46,4 @@ Price: 50 Points.
 """,
     colour=discord.Colour.dark_teal()
 )
-ShopPages = {"1": ShopPage1, "2": ShopPage2, "3": ShopPage3}
+shopPages = {"1": ShopPage1, "2": ShopPage2, "3": ShopPage3}
