@@ -1,4 +1,5 @@
 import discord
+from discord.utils import get
 
 from database.db import database
 from models.config import configuration, currentConfiguration
@@ -131,6 +132,98 @@ async def wallet(ctx):
         await ctx.channel.send("Commands can only be sent in the bot commands channel")
         return
 
-    data = database.getUserData(ctx.author.id, ctx.author.name)
-    await ctx.send(f'You have {data["wallet"]} point(s) in your wallet')
+    data:User = database.getUserData(ctx.author.id, ctx.author.name)
+    await ctx.send(f'You have {data.wallet} point(s) in your wallet')
 
+# async def verifyCode(ctx,arg):
+#     if ctx.message.channel.id != 1175788361651339416 or arg is None:
+#         return
+#     else:
+#         data = database.verifyCode(arg, False)
+#         if data is None:
+#             await ctx.send("Incorrect Code")
+#
+#         else:
+#             if not data["used"]:
+#                 status = "not used"
+#             else:
+#                 status = "used"
+#             response = f"""
+#     Status: {status}
+#     Given For: {data["usedFor"]}
+#                     """
+#         await ctx.send(response)
+
+# async def useCode(ctx,arg):
+#     if ctx.channel.id not in mainBotChannels or arg is None:
+#         return
+#
+#     data = database.useCode(arg)
+#     if not data["present"]:
+#         await ctx.message.channel.send("Incorrect Code")
+#     elif data["success"]:
+#         await ctx.message.channel.send("Code successfully Used")
+#     elif not data["success"]:
+#         await ctx.message.channel.send("Code Already Used")
+
+
+async def setShopStatus(ctx,arg):
+    """
+    change the shop status to either be open or closed.
+    Only available to main admin accounts
+    :param ctx:
+    :param arg:
+    :return:
+    """
+    if ctx.channel.id not in configuration.mainBotChannels or arg is None:
+        return
+
+    if ctx.author.id not in configuration.mainAdminIds:
+        await ctx.send("L + U thought + U Cant + Dont have the perms + Skill Issue + Me Na Sehta")
+        return
+
+    if str(arg).lower() == "open":
+        currentConfiguration.shopStatus = True
+        await ctx.channel.send("Shop Opened")
+    elif str(arg).lower() == "close":
+        currentConfiguration.shopStatus = False
+        await ctx.channel.send("Shop Closed")
+async def addUser(ctx,arg):
+    if ctx.channel.id not in configuration.mainBotChannels:
+        await ctx.channel.send("Commands can only be sent in the bot commands channel")
+        return
+
+    server = currentConfiguration.client.get_guild(819441557664169994)
+    userId = ctx.author.id
+    vcData = database.privateVcs.find_one({"owner_id": userId})
+    if vcData is None:
+        await ctx.channel.send("You do not own a private vc!")
+        return
+
+    if vcData["people_num"] == 5 and not vcData["is_upgraded"]:
+        await ctx.send(
+            "Maximum number of users reached. To add new users upgrade the current vc using rdln.vcUpgrade")
+        return
+
+    user = str(arg)
+    member = get(server.members, name=user)
+    if member is None:
+        await ctx.send("Member does not exist")
+        return
+    if member.id == ctx.author.id:
+        await ctx.send("You cannot add yourself to the vc")
+        return
+    if vcData["people"] is not None and member.id in vcData["people"]:
+        await ctx.send("User already has access to the vc")
+        return
+
+    role = get(server.roles, name=vcData["role_id"])
+    await member.add_roles(role)
+    if vcData["people"] is None:
+        peopleList = [member.id]
+    else:
+        peopleList = [member.id] + vcData["people"]
+    database.privateVcs.find_one_and_update({"owner_id": userId},
+                                            {"$set": {"people_num": (vcData["people_num"] + 1),
+                                                      "people": peopleList}})
+    await ctx.send("User added")

@@ -7,7 +7,6 @@ class ShopPaginationView(discord.ui.View):
     currentPage = 1
 
     async def buy(self):
-        data = database.getUserData(self.id, self.ctx.author.name)
         if self.currentPage == 2:
             await createVc(self.ctx)
         elif self.currentPage == 3:

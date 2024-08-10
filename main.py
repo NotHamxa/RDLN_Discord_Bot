@@ -36,14 +36,14 @@ async def UwU(ctx):
 @client.command(name="selfDestruct")
 async def selfDestruct(ctx):
     try:
-        await controller.selfDestruct(ctx)
+        await commandsController.selfDestruct(ctx)
     except Exception as e:
         print(e)
 
 @client.command(name="shop")
 async def shop(ctx):
     try:
-        await controller.shop(ctx)
+        await commandsController.shop(ctx)
     except Exception as e:
         print(e)
 
@@ -51,7 +51,7 @@ async def shop(ctx):
 @client.command(name="help")
 async def help(ctx):
     try:
-        await controller.help(ctx)
+        await commandsController.help(ctx)
     except Exception as e:
         print(e)
 
@@ -59,7 +59,7 @@ async def help(ctx):
 @client.command(name="vcLeaderboard")
 async def learderBoard(ctx):
     try:
-        await controller.vcLeaderboard(ctx)
+        await commandsController.vcLeaderboard(ctx)
     except Exception as e:
         print(e)
 
@@ -67,7 +67,7 @@ async def learderBoard(ctx):
 @client.command(name="stats")
 async def my_stats(ctx):
     try:
-        await controller.stats(ctx)
+        await commandsController.stats(ctx)
 
     except Exception as e:
         print(e)
@@ -89,69 +89,26 @@ async def wallet(ctx):
         print(e)
 
 
-@client.command(name="codeStatus")
-async def verifyCode(ctx, arg=None):
-    try:
-
-        if ctx.message.channel.id != 1175788361651339416 or arg == None:
-            return
-        else:
-            data = database.verifyCode(arg, False)
-            if data is None:
-                await ctx.send("Incorrect Code")
-
-            else:
-                if not data["used"]:
-                    status = "not used"
-                else:
-                    status = "used"
-                response = f"""
-Status: {status}
-Given For: {data["usedFor"]}
-                """
-            await ctx.send(response)
-
-    except Exception as e:
-        print(e)
+# @client.command(name="codeStatus")
+# async def verifyCode(ctx, arg=None):
+#     try:
+#         await commandsController.verifyCode(ctx, arg)
+#     except Exception as e:
+#         print(e)
 
 
-@client.command(name="useCode")
-async def useCode(ctx, arg=None):
-    try:
-
-        if ctx.channel.id not in mainBotChannels or arg is None:
-            return
-
-        data = database.useCode(arg)
-        if not data["present"]:
-            await ctx.message.channel.send("Incorrect Code")
-        elif data["success"]:
-            await ctx.message.channel.send("Code successfully Used")
-        elif not data["success"]:
-            await ctx.message.channel.send("Code Already Used")
-
-    except Exception as e:
-        print(e)
+# @client.command(name="useCode")
+# async def useCode(ctx, arg=None):
+#     try:
+#         await commandsController.useCode(ctx, arg)
+#     except Exception as e:
+#         print(e)
 
 
 @client.command(name="setShopStatus")
 async def setStatus(ctx, arg=None):
     try:
-        global shopStatus
-        if ctx.channel.id not in mainBotChannels or arg is None:
-            return
-
-        if ctx.author.id != MY_ID:
-            await ctx.send("L + U thought + U Cant + Dont have the perms + Skill Issue + Me Na Sehta")
-            return
-
-        if str(arg).lower() == "open":
-            shopStatus = True
-            await ctx.channel.send("Shop Opened")
-        elif str(arg).lower() == "close":
-            await ctx.channel.send("Shop Closed")
-            shopStatus = False
-
+        await commandsController.setShopStatus(ctx, arg)
     except Exception as e:
         print(e)
 
@@ -159,44 +116,7 @@ async def setStatus(ctx, arg=None):
 @client.command(name="addUser")
 async def addUser(ctx, arg=None):
     try:
-        if ctx.channel.id not in mainBotChannels:
-            await ctx.channel.send("Commands can only be sent in the bot commands channel")
-        else:
-            server = client.get_guild(819441557664169994)
-            userId = ctx.author.id
-            vcData = database.privateVcs.find_one({"owner_id": userId})
-            if vcData is not None:
-                if vcData["people_num"] == 5 and not vcData["is_upgraded"]:
-                    await ctx.send(
-                        "Maximum number of users reached. To add new users upgrade the current vc using rdln.vcUpgrade")
-                    return
-                else:
-                    try:
-
-                        user = str(arg)
-                        member = get(server.members, name=user)
-                        if member is None:
-                            await ctx.send("Member does not exist")
-                        elif member.name == ctx.author.name:
-                            await ctx.send("You cannot add yourself to the vc")
-                        elif vcData["people"] is not None and member.id in vcData["people"]:
-                            await ctx.send("User already has access to the vc")
-                        else:
-                            role = get(server.roles, name=vcData["role_id"])
-                            await member.add_roles(role)
-                            if vcData["people"] is None:
-                                peopleList = [member.id]
-                            else:
-                                peopleList = [member.id] + vcData["people"]
-                            database.privateVcs.find_one_and_update({"owner_id": userId},
-                                                                    {"$set": {"people_num": (vcData["people_num"] + 1),
-                                                                              "people": peopleList}})
-                            await ctx.send("User added")
-                    except Exception as e:
-                        print(e)
-
-            else:
-                await ctx.channel.send("You do not own a private vc!")
+        await commandsController.addUser(ctx, arg)
     except Exception as e:
         print(e)
 
