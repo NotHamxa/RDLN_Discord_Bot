@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 from discord.utils import get
-from db import database
 
 SECRET_KEY = "MTE2NjgxNTMzNzM4NDI2MzgzMA.G20Jyo.lAOSXqeJNgwQRXFC49JEPqgEp5T0F1CWG9-JdA"
 BOT_ANNOUNCEMENTS_CHANNEL_ID = 1178684719144128533

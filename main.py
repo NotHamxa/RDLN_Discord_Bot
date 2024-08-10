@@ -1,15 +1,12 @@
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 from discord.utils import get
 import time
-from db import database
-import os
-SECRET_KEY = os.getenv('SECRET_KEY')
-BOT_ANNOUNCEMENTS_CHANNEL_ID = 1178684719144128533
-PRIVATE_CHANNELS_CATEGORY_ID = 1190401067813453984
-GENERAL_CHANNEL_ID = 1157024450504560651
-SERVER_ID = 819441557664169994
-MY_ID = 829376179706134558
+from database.db import database, uwuImg
+from controller import controller
+from models.config import settings,configuration
+
+
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
@@ -25,19 +22,20 @@ async def on_ready():
         print(e)
 
 
+# @client.command(name="birthday")
+# async def birthday(ctx):
+#     await ctx.send("9th september. oh how i missed that day. that day was the day my life was complete. before this i was in the computers buffer. after this day i was loaded into the computers main memory which allowed me to order food from foodpanda")
+@client.command(name="UwU")
+async def UwU(ctx):
+    if ctx.channel.id not in configuration.mainBotChannels:
+        return
+    await ctx.send(uwuImg)
+
 
 @client.command(name="selfDestruct")
 async def selfDestruct(ctx):
     try:
-        if ctx.channel.id not in [1157041206572892169, 1167100338914988112]:
-            return
-        else:
-            if ctx.author.id != 829376179706134558:
-                await ctx.send("L + U thought + U Cant + Dont have the perms + Skill Issue + Me Na Sehta")
-            else:
-                await ctx.send("Wiping BOT Data")
-                await ctx.send("BOT Closed")
-                exit()
+        await controller.selfDestruct(ctx)
     except Exception as e:
         print(e)
 
@@ -71,7 +69,8 @@ HelpPage3 = discord.Embed(
     colour=discord.Colour.dark_teal()
 )
 HelpPage3.add_field(name="Note",
-                    value="Time spent in the Voice Channel will only be added once the member mutes themselves or leaves the Voice Channel")
+                    value="Time spent in the Voice Channel will only be added once the member mutes themselves or "
+                          "leaves the Voice Channel")
 HelpPage4 = discord.Embed(
     title="Shop      4/5",
     description="Points earned can be used in the shop using the command prefix rdln.shop",
@@ -174,7 +173,7 @@ class HelpPaginationView(discord.ui.View):
 
 
 ShopPage1 = discord.Embed(
-    title="Shop      1/3",
+    title="Shop      1/5",
     description="""
 Page2 : Private Voice Channel
 Page3 : Private Voice Channel(Upgrade)
@@ -182,7 +181,7 @@ Page3 : Private Voice Channel(Upgrade)
     colour=discord.Colour.dark_teal())
 
 ShopPage2 = discord.Embed(
-    title="Private VC      2/3",
+    title="Private VC      2/5",
     description=""" Buy to receive a private voice channel.
 Voice channel will be limited to 5 users excluding you. 
 For details regarding this go to rdln.help.
@@ -192,7 +191,25 @@ Price: 100 Points.
     colour=discord.Colour.dark_teal()
 )
 ShopPage3 = discord.Embed(
-    title="Private VC Upgrade      3/3",
+    title="Private VC Upgrade      3/5",
+    description="""Buy to upgrade your private voice channel.
+This will allow you to add as many friends as you want.
+
+Price: 50 Points.
+""",
+    colour=discord.Colour.dark_teal()
+)
+ShopPage4 = discord.Embed(
+    title="RDLN PC(1 hour)      4/5",
+    description="""Buy to redeem 1 hour of pc.
+This will allow you to add as many friends as you want.
+
+Price: 50 Points.
+""",
+    colour=discord.Colour.dark_teal()
+)
+ShopPage5 = discord.Embed(
+    title="Private VC Upgrade      5/5",
     description="""Buy to upgrade your private voice channel.
 This will allow you to add as many friends as you want.
 
@@ -295,18 +312,17 @@ class ShopPaginationView(discord.ui.View):
             await self.buy()
 
 
-@client.tree.command(name="shop")
+@client.command(name="shop")
 async def shop(ctx):
     try:
-        if ctx.channel.id not in [1157041206572892169, 1167100338914988112]:
+        if ctx.channel.id not in mainBotChannels:
             await ctx.channel.send("Commands can only be sent in the bot commands channel")
-        else:
-            if not shopStatus:
-                await ctx.channel.send("Shop is currently disabled")
-            else:
-                paginationView = ShopPaginationView()
-
-                await paginationView.send(ctx)
+            return
+        if not shopStatus:
+            await ctx.channel.send("Shop is currently disabled")
+            return
+        paginationView = ShopPaginationView()
+        await paginationView.send(ctx)
     except Exception as e:
         print(e)
 
@@ -314,12 +330,11 @@ async def shop(ctx):
 @client.command(name="help")
 async def help(ctx):
     try:
-        if ctx.channel.id not in [1157041206572892169, 1167100338914988112]:
+        if ctx.channel.id not in mainBotChannels:
             await ctx.channel.send("Commands can only be sent in the bot commands channel")
-        else:
-            paginationView = HelpPaginationView()
-
-            await paginationView.send(ctx)
+            return
+        paginationView = HelpPaginationView()
+        await paginationView.send(ctx)
     except Exception as e:
         print(e)
 
@@ -327,7 +342,7 @@ async def help(ctx):
 @client.command(name="vcLeaderboard")
 async def learderBoard(ctx):
     try:
-        if ctx.channel.id not in [1157041206572892169, 1167100338914988112]:
+        if ctx.channel.id not in mainBotChannels:
             await ctx.channel.send("Commands can only be sent in the bot commands channel")
         else:
             data = database.TopTen()
@@ -369,7 +384,7 @@ async def learderBoard(ctx):
 async def my_stats(ctx):
     try:
 
-        if ctx.channel.id not in [1157041206572892169, 1167100338914988112]:
+        if ctx.channel.id not in mainBotChannels:
             await ctx.channel.send("Commands can only be sent in the bot commands channel")
         else:
             id = ctx.message.author.id
@@ -416,9 +431,6 @@ async def on_voice_state_update(member, before, after):
 
                 muted.remove(member.id)
                 accs[member.id]["temp_time"] = time.time_ns()
-
-
-
         elif before.channel is not None and after.channel is None:
             if accs.get(member.id) != None:
                 if member.id not in muted:
@@ -440,7 +452,7 @@ async def on_voice_state_update(member, before, after):
 async def wallet(ctx):
     try:
 
-        if ctx.channel.id not in [1157041206572892169, 1167100338914988112]:
+        if ctx.channel.id not in mainBotChannels:
             await ctx.channel.send("Commands can only be sent in the bot commands channel")
         else:
             data = database.getUserData(ctx.author.id, ctx.author.name)
@@ -480,16 +492,16 @@ Given For: {data["usedFor"]}
 async def useCode(ctx, arg=None):
     try:
 
-        if ctx.channel.id not in [1157041206572892169, 1167100338914988112] or arg == None:
+        if ctx.channel.id not in mainBotChannels or arg is None:
             return
-        else:
-            data = database.useCode(arg)
-            if not data["present"]:
-                await ctx.message.channel.send("Incorrect Code")
-            elif data["success"]:
-                await ctx.message.channel.send("Code successfully Used")
-            elif not data["success"]:
-                await ctx.message.channel.send("Code Already Used")
+
+        data = database.useCode(arg)
+        if not data["present"]:
+            await ctx.message.channel.send("Incorrect Code")
+        elif data["success"]:
+            await ctx.message.channel.send("Code successfully Used")
+        elif not data["success"]:
+            await ctx.message.channel.send("Code Already Used")
 
     except Exception as e:
         print(e)
@@ -498,22 +510,20 @@ async def useCode(ctx, arg=None):
 @client.command(name="setShopStatus")
 async def setStatus(ctx, arg=None):
     try:
-
         global shopStatus
-
-        if ctx.channel.id not in [1157041206572892169, 1167100338914988112] or arg == None:
+        if ctx.channel.id not in mainBotChannels or arg is None:
             return
-        else:
-            if ctx.author.id != 829376179706134558:
-                await ctx.send("L + U thought + U Cant + Dont have the perms + Skill Issue + Me Na Sehta")
-            else:
 
-                if str(arg).lower() == "open":
-                    shopStatus = True
-                    await ctx.channel.send("Shop Opened")
-                elif str(arg).lower() == "close":
-                    await ctx.channel.send("Shop Closed")
-                    shopStatus = False
+        if ctx.author.id != MY_ID:
+            await ctx.send("L + U thought + U Cant + Dont have the perms + Skill Issue + Me Na Sehta")
+            return
+
+        if str(arg).lower() == "open":
+            shopStatus = True
+            await ctx.channel.send("Shop Opened")
+        elif str(arg).lower() == "close":
+            await ctx.channel.send("Shop Closed")
+            shopStatus = False
 
     except Exception as e:
         print(e)
@@ -585,7 +595,7 @@ async def upgradeVc(ctx):
 @client.command(name="addUser")
 async def addUser(ctx, arg=None):
     try:
-        if ctx.channel.id not in [1157041206572892169, 1167100338914988112]:
+        if ctx.channel.id not in mainBotChannels:
             await ctx.channel.send("Commands can only be sent in the bot commands channel")
         else:
             server = client.get_guild(819441557664169994)
@@ -630,26 +640,26 @@ async def addUser(ctx, arg=None):
 @client.command(name="vcUsers")
 async def vcUserList(ctx):
     try:
-        if ctx.channel.id not in [1157041206572892169, 1167100338914988112]:
+        if ctx.channel.id not in mainBotChannels:
             await ctx.channel.send("Commands can only be sent in the bot commands channel")
-        else:
-            vcData = database.privateVcs.find_one({"owner_id": ctx.author.id})
-            if vcData is None:
-                await ctx.send("You dont have a private vc")
-            else:
+            return
 
-                members = ""
-                for user in vcData["people"]:
-                    try:
-                        member = client.get_user(user)
-                        members += member.name
-                        members += '\n'
-                    except Exception as e:
-                        pass
-                embed = discord.Embed(title=f"{ctx.author.name}'s private VC",
-                                      colour=discord.Colour.dark_teal(),
-                                      description=members)
-                await ctx.send(embed=embed)
+        vcData = database.privateVcs.find_one({"owner_id": ctx.author.id})
+        if vcData is None:
+            await ctx.send("You dont have a private vc")
+            return
+        members = ""
+        for user in vcData["people"]:
+            try:
+                member = client.get_user(user)
+                members += member.name
+                members += '\n'
+            except Exception as e:
+                pass
+        embed = discord.Embed(title=f"{ctx.author.name}'s private VC",
+                              colour=discord.Colour.dark_teal(),
+                              description=members)
+        await ctx.send(embed=embed)
     except Exception as e:
         print(e)
 
@@ -657,7 +667,7 @@ async def vcUserList(ctx):
 @client.command(name="removeUser")
 async def removeUser(ctx, arg):
     try:
-        if ctx.channel.id not in [1157041206572892169, 1167100338914988112]:
+        if ctx.channel.id not in mainBotChannels:
             await ctx.channel.send("Commands can only be sent in the bot commands channel")
         else:
             server = client.get_guild(819441557664169994)
@@ -691,20 +701,19 @@ async def removeUser(ctx, arg):
 @client.command(name="addPoints")
 async def addPoints(ctx, arg=None):
     try:
-        if ctx.channel.id not in [1157041206572892169, 1167100338914988112]:
+        if ctx.channel.id not in mainBotChannels:
             return
-        else:
-            if ctx.author.id != MY_ID:
-                await ctx.send("L + U thought + U Cant + Dont have the perms + Skill Issue + Me Na Sehta")
-            else:
-                arg = str(arg).split(",")
-                server = client.get_guild(SERVER_ID)
-                user = get(server.members, name=arg[0])
-                if user is not None:
-                    userData = database.getUserData(user.id, user.name)
-                    database.discordData.find_one_and_update({"discord_id": user.id},
-                                                             {"$set": {"wallet": userData["wallet"] + int(arg[1])}})
-                await ctx.send("Points added")
+        if ctx.author.id != MY_ID:
+            await ctx.send("L + U thought + U Cant + Dont have the perms + Skill Issue + Me Na Sehta")
+            return
+        arg = str(arg).split(",")
+        server = client.get_guild(SERVER_ID)
+        user = get(server.members, name=arg[0])
+        if user is not None:
+            userData = database.getUserData(user.id, user.name)
+            database.discordData.find_one_and_update({"discord_id": user.id},
+                                                     {"$set": {"wallet": userData["wallet"] + int(arg[1])}})
+        await ctx.send("Points added")
     except Exception as e:
         print(e)
 
@@ -714,24 +723,27 @@ async def getFiverrProgress(ctx):
     try:
         if ctx.channel.id not in [1167100338914988112]:
             return
-        else:
-            if ctx.author.id != MY_ID:
-                return
-            else:
-                fiverrData = database.fiverrDb.find_one({"isDone": False})
-                data = ""
-                data += f'sessionCode:{fiverrData["sessionCode"]}' + '\n'
-                data += f'progress:{"Not Complete"}' + '\n'
-
-                for i in fiverrData["urls"].keys():
-                    data += f"    Id:{i}" + '\n'
-                    data += f"    Url:{fiverrData['urls'][i]['url']}" + '\n'
-                    data += f"    Progress:{fiverrData['urls'][i]['stage']}" + '\n'
-                    data += f"    Pages Downloaded:{fiverrData['urls'][i]['stage']}" + '\n'
-                    data += "\n"
-                await ctx.channel.send(data)
+        if ctx.author.id != MY_ID:
+            return
+        fiverrData = database.fiverrDb.find_one({"isDone": False})
+        data = ""
+        data += f'sessionCode:{fiverrData["sessionCode"]}' + '\n'
+        data += f'progress:{"Not Complete"}' + '\n'
+        for i in fiverrData["urls"].keys():
+            data += f"    Id:{i}" + '\n'
+            data += f"    Url:{fiverrData['urls'][i]['url']}" + '\n'
+            data += f"    Progress:{fiverrData['urls'][i]['stage']}" + '\n'
+            data += f"    Pages Downloaded:{fiverrData['urls'][i]['stage']}" + '\n'
+            data += "\n"
+        await ctx.channel.send(data)
     except Exception as e:
         print(e)
 
-
-client.run(token=SECRET_KEY)
+@client.command("verify")
+async def verifyAccount(ctx, arg=None):
+    try:
+        if ctx.channel.id not in mainBotChannels:
+            pass
+    except Exception as e:
+        print(e)
+client.run(token=settings.botKey)
