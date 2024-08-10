@@ -124,26 +124,7 @@ async def addUser(ctx, arg=None):
 @client.command(name="vcUsers")
 async def vcUserList(ctx):
     try:
-        if ctx.channel.id not in mainBotChannels:
-            await ctx.channel.send("Commands can only be sent in the bot commands channel")
-            return
-
-        vcData = database.privateVcs.find_one({"owner_id": ctx.author.id})
-        if vcData is None:
-            await ctx.send("You dont have a private vc")
-            return
-        members = ""
-        for user in vcData["people"]:
-            try:
-                member = client.get_user(user)
-                members += member.name
-                members += '\n'
-            except Exception as e:
-                pass
-        embed = discord.Embed(title=f"{ctx.author.name}'s private VC",
-                              colour=discord.Colour.dark_teal(),
-                              description=members)
-        await ctx.send(embed=embed)
+        await commandsController.vcUsersList(ctx)
     except Exception as e:
         print(e)
 
@@ -151,33 +132,7 @@ async def vcUserList(ctx):
 @client.command(name="removeUser")
 async def removeUser(ctx, arg):
     try:
-        if ctx.channel.id not in mainBotChannels:
-            await ctx.channel.send("Commands can only be sent in the bot commands channel")
-        else:
-            server = client.get_guild(819441557664169994)
-            userId = ctx.author.id
-            vcData = database.privateVcs.find_one({"owner_id": userId})
-            if vcData is not None:
-
-                member = get(server.members, name=str(arg))
-
-                if member is None:
-                    await ctx.send("User does not exists")
-                elif member.name == ctx.author.name:
-                    await ctx.send("You cannot remove yourself from the vc")
-                elif vcData["people"] is None or (member.id not in vcData["people"]):
-                    await ctx.send("User already doesnt have access to your vc")
-                else:
-                    role = get(server.roles, name=vcData["role_id"])
-                    await member.remove_roles(role)
-                    newPeopleList = vcData["people"].remove(member.id)
-                    database.privateVcs.find_one_and_update({"owner_id": userId},
-                                                            {"$set": {"people": newPeopleList,
-                                                                      "people_num": vcData["people_num"] - 1}})
-
-                    await ctx.send("User removed")
-            else:
-                await ctx.channel.send("You do not own a private vc!")
+        await commandsController.removeUser(ctx, arg)
     except Exception as e:
         print(e)
 
@@ -185,19 +140,7 @@ async def removeUser(ctx, arg):
 @client.command(name="addPoints")
 async def addPoints(ctx, arg=None):
     try:
-        if ctx.channel.id not in mainBotChannels:
-            return
-        if ctx.author.id != MY_ID:
-            await ctx.send("L + U thought + U Cant + Dont have the perms + Skill Issue + Me Na Sehta")
-            return
-        arg = str(arg).split(",")
-        server = client.get_guild(SERVER_ID)
-        user = get(server.members, name=arg[0])
-        if user is not None:
-            userData = database.getUserData(user.id, user.name)
-            database.discordData.find_one_and_update({"discord_id": user.id},
-                                                     {"$set": {"wallet": userData["wallet"] + int(arg[1])}})
-        await ctx.send("Points added")
+
     except Exception as e:
         print(e)
 

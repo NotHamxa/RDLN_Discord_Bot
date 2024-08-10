@@ -44,12 +44,12 @@ class Database():
         )
 
     def setCode(self, id):
-        data = self.getUserData(id)
-        x = (data["discord_time"] // 3600) // self.timeThreshold
-        receivable = x - data["received_num"]
+        data:User = self.getUserData(id)
+        x = (data.discord_time // 3600) // self.timeThreshold
+        receivable = x - data.received_num
         self.discordData.find_one_and_update({"discord_id": id},
-                                             {"$set": {"wallet": data["wallet"] + receivable,
-                                                       "received_num": data["received_num"] + receivable}})
+                                             {"$set": {"wallet": data.wallet + receivable,
+                                                       "received_num": data.received_num + receivable}})
 
     def verifyCode(self, code, idk):
         data = self.discordCodes.find_one({"code": code})
@@ -59,7 +59,7 @@ class Database():
         return data
 
     def generateCode(self, id, usedFor, price) -> dict:
-        data = self.getUserData(id)
+        data:User = self.getUserData(id)
         while True:
             code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
             checkCode = self.discordCodes.find_one({"code": code})
@@ -70,7 +70,7 @@ class Database():
                                               "usedFor": usedFor})
 
                 self.discordData.update_one({"discord_id": id},
-                                            {"$set": {"wallet": data["wallet"] - price}})
+                                            {"$set": {"wallet": data.wallet - price}})
                 break
         return {"status": True, "code": code}
 
