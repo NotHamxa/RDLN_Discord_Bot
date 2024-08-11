@@ -295,7 +295,8 @@ async def addPoints(ctx, arg):
     server = currentConfiguration.client.get_guild(configuration.serverId)
     user = get(server.members, name=arg[0])
     if user is not None:
-        userData = database.getUserData(user.id, user.name)
+        userData:User = database.getUserData(user.id, user.name)
         database.discordData.find_one_and_update({"discord_id": user.id},
-                                                 {"$set": {"wallet": userData["wallet"] + int(arg[1])}})
+                                                 {"$set": {"wallet": userData.wallet+ int(arg[1])}})
     await ctx.send("Points added")
+

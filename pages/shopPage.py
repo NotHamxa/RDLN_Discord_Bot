@@ -1,7 +1,6 @@
 import discord
-from database.db import database
 from pages.helperFunctions.helperFunctions import createVc, upgradeVc
-from pageModel.shopPageModel import shopPages
+from pages.pageModel.shopPageModel import shopPages
 
 class ShopPaginationView(discord.ui.View):
     currentPage = 1

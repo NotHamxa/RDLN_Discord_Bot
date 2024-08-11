@@ -1,5 +1,5 @@
 import discord
-from pageModel.helpPageModel import helpPages
+from pages.pageModel.helpPageModel import helpPages
 
 
 class HelpPaginationView(discord.ui.View):

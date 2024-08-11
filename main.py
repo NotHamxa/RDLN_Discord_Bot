@@ -1,8 +1,6 @@
 import discord
 from discord.ext import commands
-from discord.utils import get
-import time
-from database.db import database, uwuImg
+from database.db import uwuImg
 from controller import commandsController, timeController
 from models.config import settings, configuration, currentConfiguration
 
@@ -140,38 +138,37 @@ async def removeUser(ctx, arg):
 @client.command(name="addPoints")
 async def addPoints(ctx, arg=None):
     try:
-
+        await commandsController.addPoints(ctx, arg)
     except Exception as e:
         print(e)
 
 
-@client.command(name="fiverrProgress")
-async def getFiverrProgress(ctx):
-    try:
-        if ctx.channel.id not in [1167100338914988112]:
-            return
-        if ctx.author.id != MY_ID:
-            return
-        fiverrData = database.fiverrDb.find_one({"isDone": False})
-        data = ""
-        data += f'sessionCode:{fiverrData["sessionCode"]}' + '\n'
-        data += f'progress:{"Not Complete"}' + '\n'
-        for i in fiverrData["urls"].keys():
-            data += f"    Id:{i}" + '\n'
-            data += f"    Url:{fiverrData['urls'][i]['url']}" + '\n'
-            data += f"    Progress:{fiverrData['urls'][i]['stage']}" + '\n'
-            data += f"    Pages Downloaded:{fiverrData['urls'][i]['stage']}" + '\n'
-            data += "\n"
-        await ctx.channel.send(data)
-    except Exception as e:
-        print(e)
+# @client.command(name="fiverrProgress")
+# async def getFiverrProgress(ctx):
+#     try:
+#         if ctx.channel.id not in [1167100338914988112]:
+#             return
+#         if ctx.author.id != MY_ID:
+#             return
+#         fiverrData = database.fiverrDb.find_one({"isDone": False})
+#         data = ""
+#         data += f'sessionCode:{fiverrData["sessionCode"]}' + '\n'
+#         data += f'progress:{"Not Complete"}' + '\n'
+#         for i in fiverrData["urls"].keys():
+#             data += f"    Id:{i}" + '\n'
+#             data += f"    Url:{fiverrData['urls'][i]['url']}" + '\n'
+#             data += f"    Progress:{fiverrData['urls'][i]['stage']}" + '\n'
+#             data += f"    Pages Downloaded:{fiverrData['urls'][i]['stage']}" + '\n'
+#             data += "\n"
+#         await ctx.channel.send(data)
+#     except Exception as e:
+#         print(e)
 
 
 @client.command("verify")
 async def verifyAccount(ctx, arg=None):
     try:
-        if ctx.channel.id not in mainBotChannels:
-            pass
+        pass
     except Exception as e:
         print(e)
 

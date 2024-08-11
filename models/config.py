@@ -5,8 +5,16 @@ from pydantic import BaseModel
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file="../.env", env_file_encoding='utf-8')
+    model_config = SettingsConfigDict(env_file="F:\\python\\RDLN\\Discord_Bot\\.env", env_file_encoding='utf-8')
     botKey: str
+    mailUsername:str
+    mailPassword:str
+    mailPort:int
+    mailServer:str
+    mailFromName:str
+    mailStartTLS:bool
+    mailSSLTLS:bool
+
 
 
 class Configuration(BaseModel):
@@ -23,7 +31,7 @@ class Configuration(BaseModel):
 
 
 class CurrentConfiguration(BaseModel):
-    client: commands.Bot = None
+    client: Any = None
     shopStatus:bool = True
     accs:dict = {}
     muted:list = []
