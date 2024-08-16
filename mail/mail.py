@@ -1,7 +1,7 @@
 import asyncio
 from fastapi_mail import FastMail,MessageSchema,ConnectionConfig
 
-from models.config import settings
+# from models.config import settings
 
 conf = ConnectionConfig(
     MAIL_USERNAME=settings.mailUsername,

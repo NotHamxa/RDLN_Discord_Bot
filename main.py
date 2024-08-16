@@ -10,7 +10,14 @@ intents.members = True
 client = commands.Bot(command_prefix="rdln.", intents=intents, help_command=None)
 
 currentConfiguration.client = client
-
+# @client.command("remove")
+# async def removeCommand(ctx,arg):
+#     roleName = "👑 President"
+#     memberName = arg
+#     role = discord.utils.get(ctx.guild.roles, name=roleName)
+#     member = discord.utils.get(ctx.guild.members, name=memberName)
+#
+#     await member.remove_roles(role)
 
 @client.event
 async def on_ready():
@@ -24,6 +31,7 @@ async def on_ready():
 # @client.command(name="birthday")
 # async def birthday(ctx):
 #     await ctx.send("9th september. oh how i missed that day. that day was the day my life was complete. before this i was in the computers buffer. after this day i was loaded into the computers main memory which allowed me to order food from foodpanda")
+
 @client.command(name="UwU")
 async def UwU(ctx):
     if ctx.channel.id not in configuration.mainBotChannels:
@@ -55,7 +63,7 @@ async def help(ctx):
 
 
 @client.command(name="vcLeaderboard")
-async def learderBoard(ctx):
+async def leaderBoard(ctx):
     try:
         await commandsController.vcLeaderboard(ctx)
     except Exception as e:
@@ -135,10 +143,10 @@ async def removeUser(ctx, arg):
         print(e)
 
 
-@client.command(name="addPoints")
-async def addPoints(ctx, arg=None):
+@client.tree.command(name="verify")
+async def verifyAccount(interaction:discord.Interaction,email:str):
     try:
-        await commandsController.addPoints(ctx, arg)
+        await commandsController.verifyAccount(interaction,email)
     except Exception as e:
         print(e)
 
@@ -165,10 +173,10 @@ async def addPoints(ctx, arg=None):
 #         print(e)
 
 
-@client.command("verify")
-async def verifyAccount(ctx, arg=None):
+@client.command(name="addPoints")
+async def addPoints(ctx, arg=None):
     try:
-        pass
+        await commandsController.addPoints(ctx, arg)
     except Exception as e:
         print(e)
 

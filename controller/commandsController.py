@@ -6,6 +6,7 @@ from models.config import configuration, currentConfiguration
 from models.models import User
 from pages.helpPage import HelpPaginationView
 from pages.shopPage import ShopPaginationView
+from pages.emailInputModal import EmailInputModal
 
 
 async def selfDestruct(ctx):
@@ -108,6 +109,7 @@ async def stats(ctx):
     :param ctx:
     :return:
     """
+    print(type(ctx))
     if ctx.channel.id not in configuration.mainBotChannels:
         await ctx.channel.send("Commands can only be sent in the bot commands channel")
         return
@@ -285,6 +287,7 @@ async def removeUser(ctx, arg):
 
         await ctx.send("User removed")
 
+
 async def addPoints(ctx, arg):
     if ctx.channel.id not in configuration.mainBotChannels:
         return
@@ -295,8 +298,15 @@ async def addPoints(ctx, arg):
     server = currentConfiguration.client.get_guild(configuration.serverId)
     user = get(server.members, name=arg[0])
     if user is not None:
-        userData:User = database.getUserData(user.id, user.name)
+        userData: User = database.getUserData(user.id, user.name)
         database.discordData.find_one_and_update({"discord_id": user.id},
-                                                 {"$set": {"wallet": userData.wallet+ int(arg[1])}})
+                                                 {"$set": {"wallet": userData.wallet + int(arg[1])}})
     await ctx.send("Points added")
 
+
+async def verifyAccount(interaction:discord.Interaction,email:str):
+    if not email.endswith("@alpha.edu.pk"):
+        await interaction.response.send_message("Invalid email")
+
+    emailInput = EmailInputModal()
+    await interaction.response.send_modal(emailInput)
