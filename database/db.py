@@ -30,7 +30,7 @@ class Database():
         data = self.discordData.find_one({"discord_id": Id})
 
         if data is None:
-            baseUser = User(**{"discord_id": Id, "username": username})
+            baseUser = User(**{"discord_id": Id, "discord_username": username})
             self.discordData.insert_one(baseUser.model_dump())
 
             return baseUser
