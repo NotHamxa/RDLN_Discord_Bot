@@ -1,13 +1,17 @@
+import random
+import string
+import time
+from threading import Thread
 import discord
 from discord.utils import get
-
+from discord.ext.commands.context import Context
 from database.db import database
 from models.config import configuration, currentConfiguration
-from models.models import User
+from models.models import User, EmailVerificationModel
 from pages.helpPage import HelpPaginationView
 from pages.shopPage import ShopPaginationView
 from pages.emailInputModal import EmailInputModal
-
+from mail.mail import sendVerificationMail
 
 async def selfDestruct(ctx):
     """
@@ -25,12 +29,13 @@ async def selfDestruct(ctx):
     exit()
 
 
-async def shop(ctx):
+async def shop(interaction: discord.Interaction):
     """
     Sends the shop page in the case that shop is open
     :param ctx:
     :return:
     """
+    ctx = await Context.from_interaction(interaction)
     if ctx.channel.id not in configuration.mainBotChannels:
         await ctx.channel.send("Commands can only be sent in the bot commands channel")
         return
@@ -41,12 +46,13 @@ async def shop(ctx):
     await paginationView.send(ctx)
 
 
-async def help(ctx):
+async def help(interaction:discord.Interaction):
     """
     Sends the help page
     :param ctx:
     :return:
     """
+    ctx = await Context.from_interaction(interaction)
     if ctx.channel.id not in configuration.mainBotChannels:
         await ctx.channel.send("Commands can only be sent in the bot commands channel")
         return
@@ -54,13 +60,14 @@ async def help(ctx):
     await paginationView.send(ctx)
 
 
-async def vcLeaderboard(ctx):
+async def vcLeaderboard(interaction:discord.Interaction):
     """
     Checks and sends the list of the top ten users on the basis of time spent in voice channels
     At least 3 users have to be in the database to send the leaderboard
     :param ctx:
     :return:
     """
+    ctx = await Context.from_interaction(interaction)
     if ctx.channel.id not in configuration.mainBotChannels:
         await ctx.channel.send("Commands can only be sent in the bot commands channel")
         return
@@ -99,19 +106,20 @@ async def vcLeaderboard(ctx):
     embed.set_thumbnail(url=currentConfiguration.client.get_user(data[0]["discord_id"]).display_avatar)
     embed.set_author(name="VC Leaderboard")
 
-    await ctx.channel.send(embed=embed)
+    await interaction.response.send_message(embed=embed)
 
 
-async def stats(ctx):
+async def stats(interaction:discord.Interaction):
     """
     Retrieves the current time for the member calling the function
     In the event that the user does not have a profile in the database a base profile will be set
     :param ctx:
     :return:
     """
+    ctx = await Context.from_interaction(interaction)
     print(type(ctx))
     if ctx.channel.id not in configuration.mainBotChannels:
-        await ctx.channel.send("Commands can only be sent in the bot commands channel")
+        await interaction.response.send_message("Commands can only be sent in the bot commands channel")
         return
 
     id = ctx.message.author.id
@@ -127,16 +135,17 @@ async def stats(ctx):
         embed.set_author(name=f"{name}")
         embed.add_field(name="Help", value="For more information use the command rdln.help")
         embed.set_thumbnail(url=ctx.message.author.display_avatar)
-        await ctx.channel.send(embed=embed)
+        await interaction.response.send_message(embed=embed)
 
 
-async def wallet(ctx):
+async def wallet(interaction:discord.Interaction):
+    ctx = await Context.from_interaction(interaction)
     if ctx.channel.id not in configuration.mainBotChannels:
-        await ctx.channel.send("Commands can only be sent in the bot commands channel")
+        await interaction.response.send_message("Commands can only be sent in the bot commands channel")
         return
 
     data: User = database.getUserData(ctx.author.id, ctx.author.name)
-    await ctx.send(f'You have {data.wallet} point(s) in your wallet')
+    await interaction.response.send_message(f'You have {data.wallet} point(s) in your wallet')
 
 
 # async def verifyCode(ctx,arg):
@@ -145,7 +154,7 @@ async def wallet(ctx):
 #     else:
 #         data = database.verifyCode(arg, False)
 #         if data is None:
-#             await ctx.send("Incorrect Code")
+#             await interaction.response.send_message("Incorrect Code")
 #
 #         else:
 #             if not data["used"]:
@@ -156,7 +165,7 @@ async def wallet(ctx):
 #     Status: {status}
 #     Given For: {data["usedFor"]}
 #                     """
-#         await ctx.send(response)
+#         await interaction.response.send_message(response)
 
 # async def useCode(ctx,arg):
 #     if ctx.channel.id not in mainBotChannels or arg is None:
@@ -171,7 +180,7 @@ async def wallet(ctx):
 #         await ctx.message.channel.send("Code Already Used")
 
 
-async def setShopStatus(ctx, arg):
+async def setShopStatus(interaction:discord.Interaction, status):
     """
     change the shop status to either be open or closed.
     Only available to main admin accounts
@@ -179,48 +188,50 @@ async def setShopStatus(ctx, arg):
     :param arg:
     :return:
     """
-    if ctx.channel.id not in configuration.mainBotChannels or arg is None:
+    ctx = await Context.from_interaction(interaction)
+    if ctx.channel.id not in configuration.mainBotChannels or status is None:
         return
 
     if ctx.author.id not in configuration.mainAdminIds:
-        await ctx.send("L + U thought + U Cant + Dont have the perms + Skill Issue + Me Na Sehta")
+        await interaction.response.send_message("L + U thought + U Cant + Dont have the perms + Skill Issue + Me Na Sehta")
         return
 
-    if str(arg).lower() == "open":
+    if str(status).lower() == "open":
         currentConfiguration.shopStatus = True
-        await ctx.channel.send("Shop Opened")
-    elif str(arg).lower() == "close":
+        await interaction.response.send_message("Shop Opened")
+    elif str(status).lower() == "close":
         currentConfiguration.shopStatus = False
-        await ctx.channel.send("Shop Closed")
+        await interaction.response.send_message("Shop Closed")
 
 
-async def addUser(ctx, arg):
+async def addUser(interaction:discord.Interaction,username):
+    ctx = await Context.from_interaction(interaction)
     if ctx.channel.id not in configuration.mainBotChannels:
-        await ctx.channel.send("Commands can only be sent in the bot commands channel")
+        await interaction.response.send_message("Commands can only be sent in the bot commands channel")
         return
 
     server = currentConfiguration.client.get_guild(819441557664169994)
     userId = ctx.author.id
     vcData = database.privateVcs.find_one({"owner_id": userId})
     if vcData is None:
-        await ctx.channel.send("You do not own a private vc!")
+        await interaction.response.send_message("You do not own a private vc!")
         return
 
     if vcData["people_num"] == 5 and not vcData["is_upgraded"]:
-        await ctx.send(
+        await interaction.response.send_message(
             "Maximum number of users reached. To add new users upgrade the current vc using rdln.vcUpgrade")
         return
 
-    user = str(arg)
+    user = str(username)
     member = get(server.members, name=user)
     if member is None:
-        await ctx.send("Member does not exist")
+        await interaction.response.send_message("Member does not exist")
         return
     if member.id == ctx.author.id:
-        await ctx.send("You cannot add yourself to the vc")
+        await interaction.response.send_message("You cannot add yourself to the vc")
         return
     if vcData["people"] is not None and member.id in vcData["people"]:
-        await ctx.send("User already has access to the vc")
+        await interaction.response.send_message("User already has access to the vc")
         return
 
     role = get(server.roles, name=vcData["role_id"])
@@ -232,17 +243,18 @@ async def addUser(ctx, arg):
     database.privateVcs.find_one_and_update({"owner_id": userId},
                                             {"$set": {"people_num": (vcData["people_num"] + 1),
                                                       "people": peopleList}})
-    await ctx.send("User added")
+    await interaction.response.send_message("User added")
 
 
-async def vcUsersList(ctx):
+async def vcUsersList(interaction:discord.Interaction):
+    ctx = await Context.from_interaction(interaction)
     if ctx.channel.id not in configuration.mainBotChannels:
-        await ctx.channel.send("Commands can only be sent in the bot commands channel")
+        await interaction.response.send_message("Commands can only be sent in the bot commands channel")
         return
 
     vcData = database.privateVcs.find_one({"owner_id": ctx.author.id})
     if vcData is None:
-        await ctx.send("You dont have a private vc")
+        await interaction.response.send_message("You dont have a private vc")
         return
     members = ""
     for user in vcData["people"]:
@@ -255,28 +267,29 @@ async def vcUsersList(ctx):
     embed = discord.Embed(title=f"{ctx.author.name}'s private VC",
                           colour=discord.Colour.dark_teal(),
                           description=members)
-    await ctx.send(embed=embed)
+    await interaction.response.send_message(embed=embed)
 
 
-async def removeUser(ctx, arg):
+async def removeUser(interaction:discord.Interaction, username):
+    ctx = await Context.from_interaction(interaction)
     if ctx.channel.id not in configuration.mainBotChannels:
-        await ctx.channel.send("Commands can only be sent in the bot commands channel")
+        await interaction.response.send_message("Commands can only be sent in the bot commands channel")
         return
 
     server = currentConfiguration.client.get_guild(819441557664169994)
     userId = ctx.author.id
     vcData = database.privateVcs.find_one({"owner_id": userId})
     if vcData is None:
-        await ctx.channel.send("You do not own a private vc!")
+        await interaction.response.send_message("You do not own a private vc!")
         return
-    member = get(server.members, name=str(arg))
+    member = get(server.members, name=str(username))
 
     if member is None:
-        await ctx.send("User does not exists")
+        await interaction.response.send_message("User does not exists")
     elif member.name == ctx.author.name:
-        await ctx.send("You cannot remove yourself from the vc")
+        await interaction.response.send_message("You cannot remove yourself from the vc")
     elif vcData["people"] is None or (member.id not in vcData["people"]):
-        await ctx.send("User already doesnt have access to your vc")
+        await interaction.response.send_message("User already doesnt have access to your vc")
     else:
         role = get(server.roles, name=vcData["role_id"])
         await member.remove_roles(role)
@@ -285,28 +298,62 @@ async def removeUser(ctx, arg):
                                                 {"$set": {"people": newPeopleList,
                                                           "people_num": vcData["people_num"] - 1}})
 
-        await ctx.send("User removed")
+        await interaction.response.send_message("User removed")
 
 
-async def addPoints(ctx, arg):
+async def addPoints(interaction:discord.Interaction, username,points):
+    ctx = await Context.from_interaction(interaction)
     if ctx.channel.id not in configuration.mainBotChannels:
         return
     if ctx.author.id not in configuration.mainAdminIds:
-        await ctx.send("L + U thought + U Cant + Dont have the perms + Skill Issue + Me Na Sehta")
+        await interaction.response.send_message("L + U thought + U Cant + Dont have the perms + Skill Issue + Me Na Sehta")
         return
-    arg = str(arg).split(",")
+
     server = currentConfiguration.client.get_guild(configuration.serverId)
-    user = get(server.members, name=arg[0])
+    user = get(server.members, name=username)
     if user is not None:
         userData: User = database.getUserData(user.id, user.name)
         database.discordData.find_one_and_update({"discord_id": user.id},
-                                                 {"$set": {"wallet": userData.wallet + int(arg[1])}})
-    await ctx.send("Points added")
+                                                 {"$set": {"wallet": userData.wallet + int(points)}})
+    await interaction.response.send_message("Points added")
 
 
-async def verifyAccount(interaction:discord.Interaction,email:str):
+async def verifyAccount(interaction: discord.Interaction, email: str):
+    if interaction.channel.id not in configuration.mainBotChannels:
+        await interaction.response.send_message("Commands can only be sent in the bot commands channel")
+        return
+    if database.discordData.find_one({"discord_id": interaction.user.id})["isStudent"]:
+        await interaction.response.send_message("Your account is already verified")
+        return
     if not email.endswith("@alpha.edu.pk"):
         await interaction.response.send_message("Invalid email")
-
-    emailInput = EmailInputModal()
+        return
+    if database.discordData.find_one({"alphaEmail":email}) is not None:
+        await interaction.response.send_message("Email already in use")
+        return
+    verificationCode = ''.join(random.choices(string.hexdigits, k=6))
+    emailVerificationObj = EmailVerificationModel(**{"discord_id": interaction.user.id,
+                                                     "email": email,
+                                                     "verificationCode": verificationCode,
+                                                     "expiration":int(time.time()) + 500})
+    thread = Thread(target=sendVerificationMail,args=("Discord Verification Code",
+                                                      email,
+                                                      {"CODE": verificationCode}))
+    thread.start()
+    emailInput = EmailInputModal(emailVerificationObj.email,
+                                 emailVerificationObj.verificationCode,
+                                 emailVerificationObj.expiration)
     await interaction.response.send_modal(emailInput)
+
+
+async def clearDB(interaction: discord.Interaction):
+    if interaction.channel.id not in configuration.mainBotChannels:
+        await interaction.response.send_message("Commands can only be sent in the bot commands channel")
+        return
+    if interaction.user.id not in configuration.mainAdminIds:
+        await interaction.response.send_message("User not authorized")
+        return
+    database.discordData.delete_many({})
+    await interaction.channel.send("Deleted all user profiles")
+    database.discordCodes.delete_many({})
+    await interaction.channel.send("Deleted all existing codes")

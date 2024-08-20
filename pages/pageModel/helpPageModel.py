@@ -11,7 +11,7 @@ Page5 : Private Voice Channel
     colour=discord.Colour.dark_teal())
 HelpPage2 = discord.Embed(
     title="Commands      2/5",
-    description=f'all commands will start with the prefix "rdln."',
+    description=f'',
     colour=discord.Colour.dark_teal()
 )
 HelpPage2.add_field(name="stats", value="Shows how much time a member has spent in Voice Channels")

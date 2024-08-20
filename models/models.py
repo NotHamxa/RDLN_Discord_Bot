@@ -1,3 +1,4 @@
+import time
 from pydantic import BaseModel
 
 class User(BaseModel):
@@ -16,3 +17,8 @@ class PrivateVCBaseModel(BaseModel):
     people:list
     role_id:str
 
+class EmailVerificationModel(BaseModel):
+    discord_id:int
+    email:str
+    verificationCode:str
+    expiration:int

@@ -15,6 +15,7 @@ class Database():
         self.discordData = self.db.get_collection("discord")
         self.discordCodes = self.db.get_collection("discordCodes")
         self.privateVcs = self.db.get_collection("discordPrivVcs")
+        self.emailVerificationCodes = self.db.get_collection("emailVerificationCodes")
         self.fiverrDb = self.client.get_database("fiverr").get_collection("collection")
         self.timeThreshold = 1
         self.codeLenght = 6

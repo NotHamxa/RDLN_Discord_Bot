@@ -23,7 +23,7 @@ currentConfiguration.client = client
 async def on_ready():
     try:
         x = await client.tree.sync()
-        print(f'{x} commands synced')
+        print(f'{len(x)} commands synced')
     except Exception as e:
         print(e)
 
@@ -32,48 +32,48 @@ async def on_ready():
 # async def birthday(ctx):
 #     await ctx.send("9th september. oh how i missed that day. that day was the day my life was complete. before this i was in the computers buffer. after this day i was loaded into the computers main memory which allowed me to order food from foodpanda")
 
-@client.command(name="UwU")
-async def UwU(ctx):
-    if ctx.channel.id not in configuration.mainBotChannels:
-        return
-    await ctx.send(uwuImg)
+# @client.command(name="UwU")
+# async def UwU(interaction:discord.Interaction):
+#     if interaction.channel.id not in configuration.mainBotChannels:
+#         return
+#     await interaction.response.send_message(uwuImg)
 
 
-@client.command(name="selfDestruct")
+@client.tree.command(name="self-destruct")
 async def selfDestruct(ctx):
     try:
         await commandsController.selfDestruct(ctx)
     except Exception as e:
         print(e)
 
-@client.command(name="shop")
-async def shop(ctx):
+@client.tree.command(name="shop")
+async def shop(interaction:discord.Interaction):
     try:
-        await commandsController.shop(ctx)
+        await commandsController.shop(interaction)
     except Exception as e:
         print(e)
 
 
-@client.command(name="help")
-async def help(ctx):
+@client.tree.command(name="help")
+async def help(interaction:discord.Interaction):
     try:
-        await commandsController.help(ctx)
+        await commandsController.help(interaction)
     except Exception as e:
         print(e)
 
 
-@client.command(name="vcLeaderboard")
-async def leaderBoard(ctx):
+@client.tree.command(name="vc-leaderboard")
+async def leaderBoard(interaction:discord.Interaction):
     try:
-        await commandsController.vcLeaderboard(ctx)
+        await commandsController.vcLeaderboard(interaction)
     except Exception as e:
         print(e)
 
 
-@client.command(name="stats")
-async def my_stats(ctx):
+@client.tree.command(name="stats")
+async def my_stats(interaction:discord.Interaction):
     try:
-        await commandsController.stats(ctx)
+        await commandsController.stats(interaction)
 
     except Exception as e:
         print(e)
@@ -87,10 +87,10 @@ async def on_voice_state_update(member, before, after):
         print(e)
 
 
-@client.command(name="wallet")
-async def wallet(ctx):
+@client.tree.command(name="wallet")
+async def wallet(interaction:discord.Interaction):
     try:
-        await commandsController.wallet(ctx)
+        await commandsController.wallet(interaction)
     except Exception as e:
         print(e)
 
@@ -111,34 +111,34 @@ async def wallet(ctx):
 #         print(e)
 
 
-@client.command(name="setShopStatus")
-async def setStatus(ctx, arg=None):
+@client.tree.command(name="set-shop-status")
+async def setStatus(interaction:discord.Interaction, status:str):
     try:
-        await commandsController.setShopStatus(ctx, arg)
+        await commandsController.setShopStatus(interaction, status)
     except Exception as e:
         print(e)
 
 
-@client.command(name="addUser")
-async def addUser(ctx, arg=None):
+@client.tree.command(name="add-user")
+async def addUser(interaction:discord.Interaction, username:str):
     try:
-        await commandsController.addUser(ctx, arg)
+        await commandsController.addUser(interaction, username)
     except Exception as e:
         print(e)
 
 
-@client.command(name="vcUsers")
-async def vcUserList(ctx):
+@client.tree.command(name="vc-users")
+async def vcUserList(interaction:discord.Interaction):
     try:
-        await commandsController.vcUsersList(ctx)
+        await commandsController.vcUsersList(interaction)
     except Exception as e:
         print(e)
 
 
-@client.command(name="removeUser")
-async def removeUser(ctx, arg):
+@client.tree.command(name="remove-user")
+async def removeUser(interaction:discord.Interaction, username:str):
     try:
-        await commandsController.removeUser(ctx, arg)
+        await commandsController.removeUser(interaction, username)
     except Exception as e:
         print(e)
 
@@ -150,6 +150,12 @@ async def verifyAccount(interaction:discord.Interaction,email:str):
     except Exception as e:
         print(e)
 
+@client.tree.command(name="clear-db")
+async def clearDB(interaction:discord.Interaction):
+    try:
+        await commandsController.clearDB(interaction)
+    except Exception as e:
+        print(e)
 
 # @client.command(name="fiverrProgress")
 # async def getFiverrProgress(ctx):
@@ -173,10 +179,10 @@ async def verifyAccount(interaction:discord.Interaction,email:str):
 #         print(e)
 
 
-@client.command(name="addPoints")
-async def addPoints(ctx, arg=None):
+@client.tree.command(name="add-points")
+async def addPoints(interaction:discord.Interaction, username:str,points:str):
     try:
-        await commandsController.addPoints(ctx, arg)
+        await commandsController.addPoints(interaction, username,points)
     except Exception as e:
         print(e)
 
