@@ -1,3 +1,4 @@
+
 import discord
 from discord.ext import commands
 from database.db import uwuImg
@@ -7,7 +8,7 @@ from models.config import settings, configuration, currentConfiguration
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
-client = commands.Bot(command_prefix="rdln.", intents=intents, help_command=None)
+client = commands.Bot(intents=intents, help_command=None,command_prefix="meowmeownigga")
 
 currentConfiguration.client = client
 # @client.command("remove")
@@ -18,6 +19,14 @@ currentConfiguration.client = client
 #     member = discord.utils.get(ctx.guild.members, name=memberName)
 #
 #     await member.remove_roles(role)
+
+@client.event
+async def on_message(message):
+    try:
+        pass
+    except Exception as e:
+        pass
+
 
 @client.event
 async def on_ready():

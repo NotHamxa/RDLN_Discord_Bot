@@ -184,6 +184,7 @@ async def setShopStatus(interaction:discord.Interaction, status):
     """
     change the shop status to either be open or closed.
     Only available to main admin accounts
+    :param interaction:
     :param ctx:
     :param arg:
     :return:
@@ -279,6 +280,7 @@ async def removeUser(interaction:discord.Interaction, username):
     server = currentConfiguration.client.get_guild(819441557664169994)
     userId = ctx.author.id
     vcData = database.privateVcs.find_one({"owner_id": userId})
+    print(vcData)
     if vcData is None:
         await interaction.response.send_message("You do not own a private vc!")
         return
@@ -293,9 +295,10 @@ async def removeUser(interaction:discord.Interaction, username):
     else:
         role = get(server.roles, name=vcData["role_id"])
         await member.remove_roles(role)
-        newPeopleList = vcData["people"].remove(member.id)
+        vcData["people"].remove(member.id)
+        print(vcData["people"])
         database.privateVcs.find_one_and_update({"owner_id": userId},
-                                                {"$set": {"people": newPeopleList,
+                                                {"$set": {"people": vcData["people"],
                                                           "people_num": vcData["people_num"] - 1}})
 
         await interaction.response.send_message("User removed")

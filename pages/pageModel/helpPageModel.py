@@ -14,10 +14,10 @@ HelpPage2 = discord.Embed(
     description=f'',
     colour=discord.Colour.dark_teal()
 )
-HelpPage2.add_field(name="stats", value="Shows how much time a member has spent in Voice Channels")
-HelpPage2.add_field(name="vcLeaderboard",
+HelpPage2.add_field(name="/stats", value="Shows how much time a member has spent in Voice Channels")
+HelpPage2.add_field(name="/vcLeaderboard",
                     value="Shows the top 10 list of members with the most time spent in Voice Channels")
-HelpPage2.add_field(name="wallet", value="Shows how much points a member has")
+HelpPage2.add_field(name="/wallet", value="Shows how much points a member has")
 
 HelpPage3 = discord.Embed(
     title="Rewards Criteria      3/5",
@@ -30,7 +30,7 @@ HelpPage3.add_field(name="Note",
                           "leaves the Voice Channel")
 HelpPage4 = discord.Embed(
     title="Shop      4/5",
-    description="Points earned can be used in the shop using the command prefix rdln.shop",
+    description="Points earned can be used in the shop using the command /shop",
     colour=discord.Colour.dark_teal()
 )
 HelpPage4.add_field(name="Private VC", value="""
