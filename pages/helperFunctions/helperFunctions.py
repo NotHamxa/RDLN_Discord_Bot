@@ -61,3 +61,23 @@ async def upgradeVc(ctx):
     user = currentConfiguration.client.get_user(ctx.author.id)
     general = currentConfiguration.client.get_channel(configuration.generalChannelId)
     await general.send(f"{user.mention} upgraded their private voice channel from the Redline Shop")
+
+async def buyPcHour(ctx):
+    userData:User = database.getUserData(ctx.author.id)
+    if not userData.isStudent:
+        await ctx.send("U have to have a verified account to make this purchase.")
+        return
+
+
+async def buyFifaMatch(ctx):
+    userData: User = database.getUserData(ctx.author.id)
+    if not userData.isStudent:
+        await ctx.send("U have to have a verified account to make this purchase.")
+        return
+
+
+async def buyTekkenMatch(ctx):
+    userData: User = database.getUserData(ctx.author.id)
+    if not userData.isStudent:
+        await ctx.send("U have to have a verified account to make this purchase.")
+        return

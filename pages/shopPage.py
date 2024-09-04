@@ -1,15 +1,20 @@
 import discord
-from pages.helperFunctions.helperFunctions import createVc, upgradeVc
+from pages.helperFunctions.helperFunctions import *
 from pages.pageModel.shopPageModel import shopPages
 
 class ShopPaginationView(discord.ui.View):
     currentPage = 1
-
+    def __init__(self):
+        self.shopPagesNum = len(shopPages.keys())
     async def buy(self):
         if self.currentPage == 2:
             await createVc(self.ctx)
         elif self.currentPage == 3:
             await upgradeVc(self.ctx)
+        elif self.currentPage == 4:
+            await buyPcHour(self.ctx)
+        elif self.currentPage == 5:
+            await buyFifaMatch(self.ctx)
 
     async def send(self, ctx):
         self.ctx = ctx
@@ -31,7 +36,7 @@ class ShopPaginationView(discord.ui.View):
             self.LastButton.disabled = False
             self.nextButton.disabled = False
 
-        elif self.currentPage == 3:
+        elif self.currentPage == self.shopPagesNum:
             self.LastButton.disabled = True
             self.nextButton.disabled = True
             self.firstButton.disabled = False
@@ -80,7 +85,7 @@ class ShopPaginationView(discord.ui.View):
         if interaction.user.id != self.id:
             await interaction.user.send("This embed belongs to another member you cannot interact with it")
         else:
-            self.currentPage = 3
+            self.currentPage = self.shopPagesNum
             self.disableButtons()
             await self.updateMessage(self.currentPage.__str__())
 
