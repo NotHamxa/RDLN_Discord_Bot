@@ -309,7 +309,8 @@ async def addPoints(interaction:discord.Interaction, username,points):
     if ctx.channel.id not in configuration.mainBotChannels:
         return
     if ctx.author.id not in configuration.mainAdminIds:
-        await interaction.response.send_message("L + U thought + U Cant + Dont have the perms + Skill Issue + Me Na Sehta")
+        await interaction.response.send_message("L + U thought + U Cant + Dont have the perms + Skill Issue + Me Na "
+                                                "Sehta")
         return
 
     server = currentConfiguration.client.get_guild(configuration.serverId)

@@ -1,4 +1,3 @@
-
 import discord
 from discord.ext import commands
 from database.db import uwuImg
@@ -8,9 +7,11 @@ from models.config import settings, configuration, currentConfiguration
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
-client = commands.Bot(intents=intents, help_command=None,command_prefix="meowmeownigga")
+client = commands.Bot(intents=intents, help_command=None, command_prefix="meowmeownigga")
 
 currentConfiguration.client = client
+
+
 # @client.command("remove")
 # async def removeCommand(ctx,arg):
 #     roleName = "👑 President"
@@ -55,8 +56,9 @@ async def selfDestruct(ctx):
     except Exception as e:
         print(e)
 
+
 @client.tree.command(name="shop")
-async def shop(interaction:discord.Interaction):
+async def shop(interaction: discord.Interaction):
     try:
         await commandsController.shop(interaction)
     except Exception as e:
@@ -64,7 +66,7 @@ async def shop(interaction:discord.Interaction):
 
 
 @client.tree.command(name="help")
-async def help(interaction:discord.Interaction):
+async def help(interaction: discord.Interaction):
     try:
         await commandsController.help(interaction)
     except Exception as e:
@@ -72,7 +74,7 @@ async def help(interaction:discord.Interaction):
 
 
 @client.tree.command(name="vc-leaderboard")
-async def leaderBoard(interaction:discord.Interaction):
+async def leaderBoard(interaction: discord.Interaction):
     try:
         await commandsController.vcLeaderboard(interaction)
     except Exception as e:
@@ -80,7 +82,7 @@ async def leaderBoard(interaction:discord.Interaction):
 
 
 @client.tree.command(name="stats")
-async def my_stats(interaction:discord.Interaction):
+async def my_stats(interaction: discord.Interaction):
     try:
         await commandsController.stats(interaction)
 
@@ -97,7 +99,7 @@ async def on_voice_state_update(member, before, after):
 
 
 @client.tree.command(name="wallet")
-async def wallet(interaction:discord.Interaction):
+async def wallet(interaction: discord.Interaction):
     try:
         await commandsController.wallet(interaction)
     except Exception as e:
@@ -121,7 +123,7 @@ async def wallet(interaction:discord.Interaction):
 
 
 @client.tree.command(name="set-shop-status")
-async def setStatus(interaction:discord.Interaction, status:str):
+async def setStatus(interaction: discord.Interaction, status: str):
     try:
         await commandsController.setShopStatus(interaction, status)
     except Exception as e:
@@ -129,7 +131,7 @@ async def setStatus(interaction:discord.Interaction, status:str):
 
 
 @client.tree.command(name="add-user")
-async def addUser(interaction:discord.Interaction, username:str):
+async def addUser(interaction: discord.Interaction, username: str):
     try:
         await commandsController.addUser(interaction, username)
     except Exception as e:
@@ -137,7 +139,7 @@ async def addUser(interaction:discord.Interaction, username:str):
 
 
 @client.tree.command(name="vc-users")
-async def vcUserList(interaction:discord.Interaction):
+async def vcUserList(interaction: discord.Interaction):
     try:
         await commandsController.vcUsersList(interaction)
     except Exception as e:
@@ -145,7 +147,7 @@ async def vcUserList(interaction:discord.Interaction):
 
 
 @client.tree.command(name="remove-user")
-async def removeUser(interaction:discord.Interaction, username:str):
+async def removeUser(interaction: discord.Interaction, username: str):
     try:
         await commandsController.removeUser(interaction, username)
     except Exception as e:
@@ -153,18 +155,20 @@ async def removeUser(interaction:discord.Interaction, username:str):
 
 
 @client.tree.command(name="verify")
-async def verifyAccount(interaction:discord.Interaction,email:str):
+async def verifyAccount(interaction: discord.Interaction, email: str):
     try:
-        await commandsController.verifyAccount(interaction,email)
+        await commandsController.verifyAccount(interaction, email)
     except Exception as e:
         print(e)
 
+
 @client.tree.command(name="clear-db")
-async def clearDB(interaction:discord.Interaction):
+async def clearDB(interaction: discord.Interaction):
     try:
         await commandsController.clearDB(interaction)
     except Exception as e:
         print(e)
+
 
 # @client.command(name="fiverrProgress")
 # async def getFiverrProgress(ctx):
@@ -189,9 +193,9 @@ async def clearDB(interaction:discord.Interaction):
 
 
 @client.tree.command(name="add-points")
-async def addPoints(interaction:discord.Interaction, username:str,points:str):
+async def addPoints(interaction: discord.Interaction, username: str, points: str):
     try:
-        await commandsController.addPoints(interaction, username,points)
+        await commandsController.addPoints(interaction, username, points)
     except Exception as e:
         print(e)
 
