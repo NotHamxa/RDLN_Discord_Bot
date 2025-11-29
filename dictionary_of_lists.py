@@ -1,3 +1,6 @@
+import ast
+
+
 def recursive_multiple(val, lst, n1, newlst):
     """
     Recursive function to find all multiples of val in lst.
@@ -28,7 +31,7 @@ def main():
     lists of their multiples.
     """
     # Take input from user
-    lst = list(eval(input()))
+    lst = list(ast.literal_eval(input()))
     
     # Initialize the result dictionary
     result = {}
